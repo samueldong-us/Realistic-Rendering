@@ -51,10 +51,18 @@ public:
 		if (fallbackTexture == 0)
 		{
 			glGenTextures(1, &fallbackTexture);
-			glActiveTexture(GL_TEXTURE15);
+			glActiveTexture(GL_TEXTURE30);
 			glBindTexture(GL_TEXTURE_2D, fallbackTexture);
-			unsigned char defaultColor[] = { 255, 255, 255, 255 };
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, defaultColor);
+			unsigned char whiteColor[] = { 255, 255, 255, 255 };
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, whiteColor);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+			glGenTextures(1, &fallbackTexture);
+			glActiveTexture(GL_TEXTURE31);
+			glBindTexture(GL_TEXTURE_2D, fallbackTexture);
+			unsigned char blackColor[] = { 0, 0, 0, 0 };
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blackColor);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glActiveTexture(GL_TEXTURE0);
@@ -73,11 +81,11 @@ public:
 		GLuint normalNr = 1;
 		GLuint heightNr = 1;
 		GLuint maskNr = 1;
-	    glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), 15);
-		glUniform1i(glGetUniformLocation(shader.Program, "texture_specular1"), 15);
-		glUniform1i(glGetUniformLocation(shader.Program, "texture_normal1"), 15);
-		glUniform1i(glGetUniformLocation(shader.Program, "texture_height1"), 15);
-		glUniform1i(glGetUniformLocation(shader.Program, "texture_mask1"), 15);
+	    glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), Black);
+		glUniform1i(glGetUniformLocation(shader.Program, "texture_specular1"), Black);
+		glUniform1i(glGetUniformLocation(shader.Program, "texture_normal1"), Black);
+		glUniform1i(glGetUniformLocation(shader.Program, "texture_height1"), Black);
+		glUniform1i(glGetUniformLocation(shader.Program, "texture_mask1"), White);
 		for (GLuint i = 0; i < this->textures.size(); i++)
 		{
 			glActiveTexture(GL_TEXTURE0 + i); // Active proper texture unit before binding
@@ -118,6 +126,8 @@ public:
 private:
 	/*  Render data  */
 	GLuint VBO, EBO;
+
+	static const int White = 30, Black = 31;
 
 	/*  Functions    */
 	// Initializes all the buffer objects/arrays

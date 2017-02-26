@@ -14,6 +14,8 @@
 #include <model.hpp>
 #include <filesystem.hpp>
 
+#include "Skybox.hpp"
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -24,10 +26,14 @@ Shader* postShader;
 GLuint deferredBuffer;
 GLuint diffuseColor, specularColor, position, normal;
 
+int debug = 0;
+
 GLuint quadVAO;
 void Initialize();
 
 Camera camera(glm::vec3(0.f, 0.f, 2.f));
+
+using namespace AdvancedRenderer;
 
 int main(int argc, char * argv[]) {
 
@@ -58,9 +64,15 @@ int main(int argc, char * argv[]) {
 	//glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glEnable(GL_STENCIL_TEST);
 
 	deferredShader = new Shader(FileSystem::getPath("Shaders/geometry.vert.glsl").c_str(), FileSystem::getPath("Shaders/geometry.frag.glsl").c_str());
 	postShader = new Shader(FileSystem::getPath("Shaders/deferred.vert.glsl").c_str(), FileSystem::getPath("Shaders/deferred.frag.glsl").c_str());
+
+	Shader skyboxShader(FileSystem::getPath("Shaders/skybox.vert.glsl").c_str(), FileSystem::getPath("Shaders/skybox.frag.glsl").c_str());
+	Skybox skybox(FileSystem::getPath("Resources/clouds/bluecloud"), "jpg");
 
 	Model sponzaModel(FileSystem::getPath("Resources/crytek_sponza/sponza.obj").c_str());
 
@@ -69,12 +81,17 @@ int main(int argc, char * argv[]) {
 	// Rendering Loop
 	while (glfwWindowShouldClose(mWindow) == false) {
 		glfwPollEvents();
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilMask(0xFF);
 		
 		// Background Fill Color
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glBindFramebuffer(GL_FRAMEBUFFER, deferredBuffer);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		
+		glStencilMask(0x00);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)mWidth / (GLfloat)mHeight, mNear, mFar);
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model = glm::mat4();
@@ -89,6 +106,13 @@ int main(int argc, char * argv[]) {
 		model = glm::scale(model, glm::vec3(0.05f));    // The sponza model is too big, scale it first
 		glUniformMatrix4fv(glGetUniformLocation(deferredShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 		sponzaModel.Draw(*deferredShader);
+
+		glStencilMask(0xFF);
+		skyboxShader.Use();
+		glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		skybox.Draw(skyboxShader);
+		glStencilMask(0x00);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -105,6 +129,7 @@ int main(int argc, char * argv[]) {
 		glUniform1i(glGetUniformLocation(postShader->Program, "specularColor"), 1);
 		glUniform1i(glGetUniformLocation(postShader->Program, "position"), 2);
 		glUniform1i(glGetUniformLocation(postShader->Program, "normal"), 3);
+		glUniform1i(glGetUniformLocation(postShader->Program, "debug"), debug);
 		glBindVertexArray(quadVAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 		glBindVertexArray(0);
@@ -223,6 +248,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		camera.ProcessKeyboard(LEFT, 0.1);
 	if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
 		camera.ProcessKeyboard(RIGHT, 0.1);
+	if (key >= GLFW_KEY_1 && key <= GLFW_KEY_4 && action == GLFW_PRESS)
+		debug = key - GLFW_KEY_1;
 }
 
 GLfloat lastX = 400, lastY = 300;

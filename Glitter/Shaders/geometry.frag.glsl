@@ -28,5 +28,13 @@ void main()
     float vHeight = texture(texture_normal1, TexCoords + vec2(0.0, 0.001)).r - texture(texture_normal1, TexCoords - vec2(0.0, 0.001)).r;
     vec3 modifiedTangent = normalize(Tangent) + uHeight * normalize(Normal);
     vec3 modifiedBiTangent = normalize(BiTangent) + vHeight * normalize(Normal);
-    normal = cross(normalize(modifiedTangent), normalize(modifiedBiTangent));
+    vec3 potentialNormal = cross(normalize(modifiedTangent), normalize(modifiedBiTangent));
+    if (dot(potentialNormal, Normal) < 0.0)
+    {
+        normal = -potentialNormal;
+    }
+    else
+    {
+        normal = potentialNormal;
+    }
 }

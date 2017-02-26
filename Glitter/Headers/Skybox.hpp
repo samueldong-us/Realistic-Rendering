@@ -4,17 +4,19 @@
 
 #include <glad/glad.h>
 
+#include "shader.hpp"
+
 namespace AdvancedRenderer
 {
 	class Skybox
 	{
 	public:
-		Skybox(const std::string& filenamePrefix);
+		Skybox(const std::string& filenamePrefix, const std::string& extension);
 		~Skybox();
 		
-		void Draw();
+		void Draw(Shader shader);
 
 	private:
-		GLuint vao, texture;
+		GLuint vao, texture, positions;
 	};
 }

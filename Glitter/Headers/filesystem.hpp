@@ -3,7 +3,7 @@
 
 #include <string>
 
-const char *logl_root = "../Glitter";
+const static char *logl_root = "../Glitter";
 
 class FileSystem
 {

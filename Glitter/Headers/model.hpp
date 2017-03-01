@@ -210,7 +210,7 @@ private:
 
 
 
-GLint TextureFromFile(const char* path, string directory, bool gamma)
+inline GLint TextureFromFile(const char* path, string directory, bool gamma)
 {
 	//Generate texture ID and load texture data 
 	string filename = string(path);

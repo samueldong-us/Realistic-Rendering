@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
+#include "glitter.hpp"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -66,6 +66,11 @@ public:
 	glm::mat4 GetViewMatrix()
 	{
 		return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
+	}
+
+	glm::mat4 GetProjectionMatrx()
+	{
+		return glm::perspective(glm::radians(this->Zoom), (GLfloat)mWidth / (GLfloat)mHeight, mNear, mFar);
 	}
 
 	// Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

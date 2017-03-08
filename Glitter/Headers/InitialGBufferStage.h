@@ -15,12 +15,16 @@ namespace AdvancedRenderer
 		InitialGBufferStage();
 		~InitialGBufferStage();
 
-		void PerformStage(const std::unique_ptr<Camera>& camera, const std::unique_ptr<Model>& model);
+		void PerformStage(const std::unique_ptr<Camera>& camera, const std::unique_ptr<Model>& model, const glm::mat4& modelMatrix) const;
+
+		void BindDiffuseColorBuffer(const GLenum textureUnit) const;
+		void BindSpecularColorBuffer(const GLenum textureUnit) const;
+		void BindPositionBuffer(const GLenum textureUnit) const;
+		void BindNormalBuffer(const GLenum textureUnit) const;
+		void BindDepthBuffer(const GLenum textureUnit) const;
 
 	private:
 		std::unique_ptr<Shader> shader;
-		GLuint framebuffer, diffuseColorTexture, specularColorTexture, positionTexture, normalTexture;
-
-		inline void DefaultTextureParameters() const;
+		GLuint framebuffer, diffuseColorTexture, specularColorTexture, positionTexture, normalTexture, depthTexture;
 	};
 }

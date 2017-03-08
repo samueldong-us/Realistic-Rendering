@@ -1,16 +1,11 @@
-#include <memory>
-
-#include "glad\glad.h"
-#include "glm\glm.hpp"
 #include "GLFW\glfw3.h"
 
 #include "filesystem.hpp"
-#include "camera.hpp"
-#include "model.hpp"
 
 #include "InitialGBufferStage.h"
+#include "Renderer.h"
 
-#include "Renderer.hpp"
+#include "Skybox.h"
 
 using namespace std;
 using namespace glm;
@@ -19,15 +14,16 @@ namespace AdvancedRenderer
 {
 	void Renderer::InitializeOpenGL()
 	{
-		glEnable(GL_DEPTH_TEST);
 	}
 
 	void Renderer::LoadContent()
 	{
 		initialGBufferStage = unique_ptr<InitialGBufferStage>(new InitialGBufferStage());
+		occlusionStage = unique_ptr<OcclusionStage>(new OcclusionStage());
 
 		camera = unique_ptr<Camera>(new Camera(vec3(0.0f, 0.0f, 2.0f)));
 		model = unique_ptr<Model>(new Model(FileSystem::getPath("Resources/crytek_sponza/sponza.obj")));
+		environment = unique_ptr<Skybox>(new Skybox(FileSystem::getPath("Resources/grace_cathedral_blur/grace"), "hdr"));
 	}
 
 	void Renderer::Update(const float deltaTime)
@@ -44,7 +40,8 @@ namespace AdvancedRenderer
 
 	void Renderer::Render()
 	{
-		initialGBufferStage->PerformStage(camera, model);
+		initialGBufferStage->PerformStage(camera, model, scale(mat4(), vec3(0.05f)));
+		occlusionStage->PerformStage(true, 0.5f, initialGBufferStage, camera, environment);
 	}
 
 	void Renderer::OnKeyPressed(const int key)

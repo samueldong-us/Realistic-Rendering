@@ -33,7 +33,7 @@ void main()
     float dv = texture(texture_normal1, uv + vec2(0.0, 1.0 / screenHeight)).r - texture(texture_normal1, uv - vec2(0.0, 1.0 / screenHeight)).r;
     vec3 modifiedTangent = normalize(tangent) + du * normalize(normal);
     vec3 modifiedBitangent = normalize(bitangent) + dv * normalize(normal);
-    vec3 potentialNormal = cross(normalize(modifiedTangent), normalize(modifiedBitangent));
+    vec3 potentialNormal = normalize(cross(modifiedTangent, modifiedBitangent));
     if (dot(potentialNormal, normal) < 0.0)
     {
         normalColor = -potentialNormal;

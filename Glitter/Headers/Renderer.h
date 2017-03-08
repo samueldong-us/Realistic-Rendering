@@ -5,7 +5,9 @@
 #include "camera.hpp"
 #include "model.hpp"
 
+#include "Skybox.h"
 #include "InitialGBufferStage.h"
+#include "OcclusionStage.h"
 
 namespace AdvancedRenderer
 {
@@ -24,10 +26,15 @@ namespace AdvancedRenderer
 		void OnMouseScrolled(const float scrollAmount);
 
 	private:
+		enum class OcclusionMode { AmbientOcclusion, DirectionalOcclusion };
+		OcclusionMode occlusionMode;
+
 		std::unique_ptr<InitialGBufferStage> initialGBufferStage;
+		std::unique_ptr<OcclusionStage> occlusionStage;
 
 		std::unique_ptr<Camera> camera;
 		std::unique_ptr<Model> model;
+		std::unique_ptr<Skybox> environment;
 
 		std::map<int, bool> keyState;
 		std::map<int, bool> mouseState;

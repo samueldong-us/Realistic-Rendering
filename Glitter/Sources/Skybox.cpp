@@ -1,10 +1,9 @@
-#include <string>
+#include "soil/soil.h"
 
-#include <soil/soil.h>
+#include "rgbe.h"
 
-#include "shader.hpp"
-
-#include "Skybox.hpp"
+#include "VertexData.h"
+#include "Skybox.h"
 
 using namespace std;
 
@@ -16,12 +15,29 @@ namespace AdvancedRenderer
 
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-		for (int i = 0; i < 6; i++)
+		if (extension.compare("hdr") == 0)
 		{
-			int width, height;
-			unsigned char* image = SOIL_load_image((filenamePrefix + "_" + suffixes[i] + "." + extension).c_str(), &width, &height, NULL, SOIL_LOAD_RGB);
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-			SOIL_free_image_data(image);
+			for (int i = 0; i < 6; i++)
+			{
+				FILE* imageFile = fopen((filenamePrefix + "_" + suffixes[i] + "." + extension).c_str(), "rb");
+				int width, height;
+				RGBE_ReadHeader(imageFile, &width, &height, NULL);
+				float* image = (float*)malloc(sizeof(float) * 3 * width * height);
+				RGBE_ReadPixels_RLE(imageFile, image, width, height);
+				fclose(imageFile);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, image);
+				free(image);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 6; i++)
+			{
+				int width, height;
+				unsigned char* image = SOIL_load_image((filenamePrefix + "_" + suffixes[i] + "." + extension).c_str(), &width, &height, NULL, SOIL_LOAD_RGB);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+				SOIL_free_image_data(image);
+			}
 		}
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -29,54 +45,9 @@ namespace AdvancedRenderer
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-		static GLfloat skyboxVertices[] = {
-			// Positions          
-			-1.0f,  1.0f, -1.0f,
-			-1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-			1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-
-			-1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
-
-			1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-
-			-1.0f, -1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
-
-			-1.0f,  1.0f, -1.0f,
-			1.0f,  1.0f, -1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f, -1.0f,
-
-			-1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			1.0f, -1.0f,  1.0f
-		};
-
 		glGenBuffers(1, &positions);
 		glBindBuffer(GL_ARRAY_BUFFER, positions);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(CubePositions), CubePositions, GL_STATIC_DRAW);
 
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
@@ -94,12 +65,18 @@ namespace AdvancedRenderer
 		glDeleteBuffers(1, &positions);
 	}
 
-	void Skybox::Draw(Shader shader)
+	void Skybox::Draw(const unique_ptr<Shader>& shader) const
 	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-		glUniform1i(glGetUniformLocation(shader.Program, "skybox"), 0);
+		BindSkybox(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(shader->Program, "Skybox"), 0);
 		glBindVertexArray(vao);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, sizeof(CubePositions) / sizeof(float));
+		glBindVertexArray(0);
+	}
+
+	void Skybox::BindSkybox(const GLenum textureUnit) const
+	{
+		glActiveTexture(textureUnit);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 	}
 }

@@ -6,7 +6,7 @@
 
 #include "glitter.hpp"
 
-#include "Renderer.hpp"
+#include "Renderer.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -14,7 +14,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 AdvancedRenderer::Renderer renderer;
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);

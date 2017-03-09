@@ -11,6 +11,7 @@
 #include "OcclusionStage.h"
 #include "LightingStage.h"
 #include "CompositeStage.h"
+#include "PostProcessingStage.h"
 
 namespace AdvancedRenderer
 {
@@ -29,13 +30,16 @@ namespace AdvancedRenderer
 		void OnMouseScrolled(const float scrollAmount);
 
 	private:
-		enum class OcclusionMode { AmbientOcclusion, DirectionalOcclusion };
+		DisplayMode displayMode;
 		OcclusionMode occlusionMode;
+		int activeLight;
+		float exposure;
 
 		std::unique_ptr<InitialGBufferStage> initialGBufferStage;
 		std::unique_ptr<OcclusionStage> occlusionStage;
 		std::unique_ptr<LightingStage> lightingStage;
 		std::unique_ptr<CompositeStage> compositeStage;
+		std::unique_ptr<PostProcessingStage> postProcessingStage;
 
 		std::unique_ptr<Camera> camera;
 		std::unique_ptr<Model> model;

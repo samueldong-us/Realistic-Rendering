@@ -18,7 +18,6 @@ namespace AdvancedRenderer
 		compositeShader = unique_ptr<Shader>(new Shader(FileSystem::getPath("Shaders/Composite.vert.glsl").c_str(), FileSystem::getPath("Shaders/Composite.frag.glsl").c_str()));
 		lightShader = unique_ptr<Shader>(new Shader(FileSystem::getPath("Shaders/Light.vert.glsl").c_str(), FileSystem::getPath("Shaders/Light.frag.glsl").c_str()));
 		skymapShader = unique_ptr<Shader>(new Shader(FileSystem::getPath("Shaders/Skymap.vert.glsl").c_str(), FileSystem::getPath("Shaders/Skymap.frag.glsl").c_str()));
-		test = unique_ptr<Shader>(new Shader(FileSystem::getPath("Shaders/Testing.vert.glsl").c_str(), FileSystem::getPath("Shaders/Testing.frag.glsl").c_str()));
 
 		glGenBuffers(1, &quadPosition);
 		glBindBuffer(GL_ARRAY_BUFFER, quadPosition);
@@ -91,7 +90,7 @@ namespace AdvancedRenderer
 		glDeleteBuffers(sizeof(buffers) / sizeof(GLuint), buffers);
 	}
 
-	void CompositeStage::PerformStage(const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<OcclusionStage>& occlusionBuffer, const std::unique_ptr<LightingStage>& lightingBuffer, const vector<unique_ptr<Light>*>& lights, const std::unique_ptr<Skybox>& skybox, const std::unique_ptr<Camera>& camera) const
+	void CompositeStage::PerformStage(const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<OcclusionStage>& occlusionBuffer, const std::unique_ptr<LightingStage>& lightingBuffer, const vector<unique_ptr<Light>*>& lights, const int activeLight, const std::unique_ptr<Skybox>& skybox, const std::unique_ptr<Camera>& camera) const
 	{
 		gbuffers->BindFramebuffer(GL_READ_FRAMEBUFFER);
 		glViewport(0, 0, ScreenWidth, ScreenHeight);
@@ -112,34 +111,33 @@ namespace AdvancedRenderer
 		glDrawElements(GL_TRIANGLES, sizeof(QuadIndices) / sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
 		glEnable(GL_DEPTH_TEST);
 		lightShader->Use();
-		glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrx()));
+		glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrix()));
 		glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "View"), 1, GL_FALSE, value_ptr(camera->GetViewMatrix()));
 		glBindVertexArray(cubeVao);
-		for (auto light : lights)
+		for (int i = 0; i < lights.size(); i++)
 		{
+			unique_ptr<Light>* light = lights[i];
 			glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "Model"), 1, GL_FALSE, value_ptr(scale(translate(mat4(), (*light)->position), vec3(0.5f))));
 			glUniform3fv(glGetUniformLocation(lightShader->Program, "Color"), 1, value_ptr((*light)->color));
+			glUniform1f(glGetUniformLocation(lightShader->Program, "Multiplier"), i == activeLight ? 2.0f : 0.5f);
 			glDrawArrays(GL_TRIANGLES, 0, sizeof(CubePositions) / sizeof(float));
 		}
 
 		skybox->BindSkybox(GL_TEXTURE0);
 		skymapShader->Use();
-		glUniformMatrix4fv(glGetUniformLocation(skymapShader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrx()));
+		glUniformMatrix4fv(glGetUniformLocation(skymapShader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrix()));
 		glUniformMatrix4fv(glGetUniformLocation(skymapShader->Program, "View"), 1, GL_FALSE, value_ptr(camera->GetViewMatrix()));
 		glUniform1i(glGetUniformLocation(skymapShader->Program, "Skymap"), 0);
 		glBindVertexArray(cubeVao);
 		glDrawArrays(GL_TRIANGLES, 0, sizeof(CubePositions) / sizeof(float));
 		glBindVertexArray(0);
-
-		glDisable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0);
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	void CompositeStage::BindCompositeBuffer(const GLenum textureUnit) const
+	{
+		glActiveTexture(textureUnit);
 		glBindTexture(GL_TEXTURE_2D, compositeTexture);
-		test->Use();
-		glUniform1i(glGetUniformLocation(test->Program, "Buffer"), 0);
-		glBindVertexArray(vao);
-		glDrawElements(GL_TRIANGLES, sizeof(QuadIndices) / sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
-		glBindVertexArray(0);
 	}
 }

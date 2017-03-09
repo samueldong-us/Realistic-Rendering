@@ -1,6 +1,6 @@
 #version 330 core
 #define Pi 3.1415926
-#define Bias 0.1
+#define Bias 0.5
 #define NonConductor 0.04
 
 in vec2 uv;

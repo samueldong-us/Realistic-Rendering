@@ -18,7 +18,7 @@ namespace AdvancedRenderer
 		OcclusionStage();
 		~OcclusionStage();
 
-		void PerformStage(const bool directional, const float radius, const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<Camera>& camera, const std::unique_ptr<Skybox>& environmentMap) const;
+		void PerformStage(const OcclusionMode occlusionMode, const float radius, const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<Camera>& camera, const std::unique_ptr<Skybox>& environmentMap) const;
 
 		void BindOcclusionBuffer(const GLenum textureUnit) const;
 

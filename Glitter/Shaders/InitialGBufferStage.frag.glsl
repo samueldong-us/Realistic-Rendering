@@ -1,5 +1,6 @@
 #version 330 core
 #define TextureSize 1024
+#define BumpStrength 3.0
 
 in vec3 position;
 in vec2 uv;
@@ -29,8 +30,8 @@ void main()
 
     float du = texture(texture_normal1, uv + vec2(1.0 / TextureSize, 0.0)).r - texture(texture_normal1, uv - vec2(1.0 / TextureSize, 0.0)).r;
     float dv = texture(texture_normal1, uv + vec2(0.0, 1.0 / TextureSize)).r - texture(texture_normal1, uv - vec2(0.0, 1.0 / TextureSize)).r;
-    vec3 modifiedTangent = normalize(tangent) + du * normalize(normal);
-    vec3 modifiedBitangent = normalize(bitangent) + dv * normalize(normal);
+    vec3 modifiedTangent = normalize(tangent) + BumpStrength * du * normalize(normal);
+    vec3 modifiedBitangent = normalize(bitangent) + BumpStrength * dv * normalize(normal);
     vec3 potentialNormal = normalize(cross(modifiedTangent, modifiedBitangent));
     if (dot(potentialNormal, normal) < 0.0)
     {

@@ -19,10 +19,11 @@ namespace AdvancedRenderer
 		CompositeStage();
 		~CompositeStage();
 
-		void PerformStage(const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<OcclusionStage>& occlusionBuffer, const std::unique_ptr<LightingStage>& lightingBuffer, const std::vector<std::unique_ptr<Light>*>& lights, const std::unique_ptr<Skybox>& skybox, const std::unique_ptr<Camera>& camera) const;
+		void PerformStage(const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<OcclusionStage>& occlusionBuffer, const std::unique_ptr<LightingStage>& lightingBuffer, const std::vector<std::unique_ptr<Light>*>& lights, const int activeLight, const std::unique_ptr<Skybox>& skybox, const std::unique_ptr<Camera>& camera) const;
+		void BindCompositeBuffer(const GLenum textureUnit) const;
 
 	private:
-		std::unique_ptr<Shader> compositeShader, lightShader, skymapShader, test;
+		std::unique_ptr<Shader> compositeShader, lightShader, skymapShader;
 		GLuint vao, framebuffer, compositeTexture, quadPosition, quadUV, quadIndex, cubeVao, cubePosition;
 	};
 }

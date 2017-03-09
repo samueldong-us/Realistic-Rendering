@@ -4,8 +4,9 @@
 layout (location = 0) out vec3 color;
 
 uniform vec3 Color;
+uniform float Multiplier;
 
 void main()
 {
-    color = HdrMultiplier * Color;
+    color = HdrMultiplier * Multiplier * Color;
 }

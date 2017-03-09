@@ -43,6 +43,8 @@ public:
 	GLfloat MouseSensitivity;
 	GLfloat Zoom;
 
+	glm::mat4 PreviousView;
+
 	// Constructor with vectors
 	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
 	{
@@ -51,6 +53,7 @@ public:
 		this->Yaw = yaw;
 		this->Pitch = pitch;
 		this->updateCameraVectors();
+		PreviousView = GetViewMatrix();
 	}
 	// Constructor with scalar values
 	Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
@@ -60,6 +63,7 @@ public:
 		this->Yaw = yaw;
 		this->Pitch = pitch;
 		this->updateCameraVectors();
+		PreviousView = GetViewMatrix();
 	}
 
 	// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
@@ -68,7 +72,7 @@ public:
 		return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
 	}
 
-	glm::mat4 GetProjectionMatrx()
+	glm::mat4 GetProjectionMatrix()
 	{
 		return glm::perspective(glm::radians(this->Zoom), (GLfloat)mWidth / (GLfloat)mHeight, mNear, mFar);
 	}

@@ -73,7 +73,7 @@ namespace AdvancedRenderer
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader->Use();
-		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrx()));
+		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrix()));
 		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "View"), 1, GL_FALSE, value_ptr(camera->GetViewMatrix()));
 		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Model"), 1, GL_FALSE, value_ptr(modelMatrix));
 		model->Draw(*shader);

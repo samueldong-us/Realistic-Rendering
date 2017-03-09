@@ -86,7 +86,7 @@ namespace AdvancedRenderer
 		glDeleteBuffers(sizeof(buffers) / sizeof(GLuint), buffers);
 	}
 
-	void OcclusionStage::PerformStage(const bool directional, const float radius, const unique_ptr<InitialGBufferStage>& gbuffers, const unique_ptr<Camera>& camera, const unique_ptr<Skybox>& environmentMap) const
+	void OcclusionStage::PerformStage(const OcclusionMode occlusionMode, const float radius, const unique_ptr<InitialGBufferStage>& gbuffers, const unique_ptr<Camera>& camera, const unique_ptr<Skybox>& environmentMap) const
 	{
 		glDisable(GL_DEPTH_TEST);
 		glViewport(0, 0, OcclusionTextureWidth, OcclusionTextureHeight);
@@ -100,12 +100,12 @@ namespace AdvancedRenderer
 		glUniform1f(glGetUniformLocation(shader->Program, "Radius"), radius);
 		glUniform3fv(glGetUniformLocation(shader->Program, "Kernel"), OcclusionSamples, randomKernel);
 		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "View"), 1, GL_FALSE, value_ptr(camera->GetViewMatrix()));
-		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrx()));
+		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrix()));
 		glUniform1i(glGetUniformLocation(shader->Program, "DiffuseColorBuffer"), 0);
 		glUniform1i(glGetUniformLocation(shader->Program, "PositionBuffer"), 1);
 		glUniform1i(glGetUniformLocation(shader->Program, "NormalBuffer"), 2);
 		glUniform1i(glGetUniformLocation(shader->Program, "Environment"), 3);
-		glUniform1i(glGetUniformLocation(shader->Program, "Directional"), directional);
+		glUniform1i(glGetUniformLocation(shader->Program, "Directional"), occlusionMode == OcclusionMode::DirectionalOcclusion);
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, sizeof(QuadIndices) / sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
 		glBindVertexArray(0);

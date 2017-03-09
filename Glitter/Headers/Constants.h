@@ -3,6 +3,9 @@
 
 namespace AdvancedRenderer
 {
+	enum class DisplayMode { Full, Diffuse, Specular, Position, Normal, Occlusion, Lighting, Composite };
+	enum class OcclusionMode { AmbientOcclusion, DirectionalOcclusion };
+
 	const int ShadowTextureWidth = 1024;
 	const int ShadowTextureHeight = 1024;
 

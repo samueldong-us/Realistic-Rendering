@@ -20,8 +20,10 @@ namespace AdvancedRenderer
 
 		void PerformStage(const bool directional, const float radius, const std::unique_ptr<InitialGBufferStage>& gbuffers, const std::unique_ptr<Camera>& camera, const std::unique_ptr<Skybox>& environmentMap) const;
 
+		void BindOcclusionBuffer(const GLenum textureUnit) const;
+
 	private:
-		std::unique_ptr<Shader> shader, test;
+		std::unique_ptr<Shader> shader;
 		GLuint vao, framebuffer, occlusionTexture, quadPosition, quadUV, quadIndex;
 
 		float randomKernel[OcclusionSamples * 3];

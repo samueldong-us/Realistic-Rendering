@@ -44,34 +44,11 @@ namespace AdvancedRenderer
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-		glGenBuffers(1, &positions);
-		glBindBuffer(GL_ARRAY_BUFFER, positions);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(CubePositions), CubePositions, GL_STATIC_DRAW);
-
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, positions);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-		glBindVertexArray(0);
 	}
 
 	Skybox::~Skybox()
 	{
-		glDeleteVertexArrays(1, &vao);
 		glDeleteTextures(1, &texture);
-		glDeleteBuffers(1, &positions);
-	}
-
-	void Skybox::Draw(const unique_ptr<Shader>& shader) const
-	{
-		BindSkybox(GL_TEXTURE0);
-		glUniform1i(glGetUniformLocation(shader->Program, "Skybox"), 0);
-		glBindVertexArray(vao);
-		glDrawArrays(GL_TRIANGLES, 0, sizeof(CubePositions) / sizeof(float));
-		glBindVertexArray(0);
 	}
 
 	void Skybox::BindSkybox(const GLenum textureUnit) const

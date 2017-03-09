@@ -17,11 +17,11 @@ namespace AdvancedRenderer
 	OcclusionStage::OcclusionStage()
 	{
 		shader = unique_ptr<Shader>(new Shader(FileSystem::getPath("Shaders/Occlusion.vert.glsl").c_str(), FileSystem::getPath("Shaders/Occlusion.frag.glsl").c_str()));
-		test = unique_ptr<Shader>(new Shader(FileSystem::getPath("Shaders/Testing.vert.glsl").c_str(), FileSystem::getPath("Shaders/Testing.frag.glsl").c_str()));
+
 		glGenBuffers(1, &quadPosition);
 		glBindBuffer(GL_ARRAY_BUFFER, quadPosition);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(QuadPositions), QuadPositions, GL_STATIC_DRAW);
-		
+
 		glGenBuffers(1, &quadUV);
 		glBindBuffer(GL_ARRAY_BUFFER, quadUV);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(QuadUVs), QuadUVs, GL_STATIC_DRAW);
@@ -65,7 +65,7 @@ namespace AdvancedRenderer
 		glGenTextures(1, &occlusionTexture);
 		glBindTexture(GL_TEXTURE_2D, occlusionTexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, OcclusionTextureWidth, OcclusionTextureHeight, 0, GL_RGB, GL_FLOAT, NULL);
-		DefaultTextureParameters();
+		DefaultTextureParameters(GL_TEXTURE_2D);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, occlusionTexture, 0);
 
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -92,36 +92,29 @@ namespace AdvancedRenderer
 		glViewport(0, 0, OcclusionTextureWidth, OcclusionTextureHeight);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClear(GL_COLOR_BUFFER_BIT);
-		if (directional)
-		{
-			gbuffers->BindDiffuseColorBuffer(GL_TEXTURE0);
-			gbuffers->BindPositionBuffer(GL_TEXTURE1);
-			gbuffers->BindNormalBuffer(GL_TEXTURE2);
-			gbuffers->BindDepthBuffer(GL_TEXTURE3);
-			environmentMap->BindSkybox(GL_TEXTURE4);
-			shader->Use();
-			glUniform1f(glGetUniformLocation(shader->Program, "Radius"), radius);
-			glUniform3fv(glGetUniformLocation(shader->Program, "Kernel"), OcclusionSamples, randomKernel);
-			glUniformMatrix4fv(glGetUniformLocation(shader->Program, "View"), 1, GL_FALSE, value_ptr(camera->GetViewMatrix()));
-			glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrx()));
-			glUniform1i(glGetUniformLocation(shader->Program, "DiffuseColorBuffer"), 0);
-			glUniform1i(glGetUniformLocation(shader->Program, "PositionBuffer"), 1);
-			glUniform1i(glGetUniformLocation(shader->Program, "NormalBuffer"), 2);
-			glUniform1i(glGetUniformLocation(shader->Program, "DepthBuffer"), 3);
-			glUniform1i(glGetUniformLocation(shader->Program, "Environment"), 4);
-			glBindVertexArray(vao);
-			glDrawElements(GL_TRIANGLES, sizeof(QuadIndices) / sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
-			glBindVertexArray(0);
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, ScreenWidth, ScreenHeight);
-		glClear(GL_COLOR_BUFFER_BIT);
-		test->Use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, occlusionTexture);
-		glUniform1i(glGetUniformLocation(test->Program, "Buffer"), 0);
+		gbuffers->BindDiffuseColorBuffer(GL_TEXTURE0);
+		gbuffers->BindPositionBuffer(GL_TEXTURE1);
+		gbuffers->BindNormalBuffer(GL_TEXTURE2);
+		environmentMap->BindSkybox(GL_TEXTURE3);
+		shader->Use();
+		glUniform1f(glGetUniformLocation(shader->Program, "Radius"), radius);
+		glUniform3fv(glGetUniformLocation(shader->Program, "Kernel"), OcclusionSamples, randomKernel);
+		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "View"), 1, GL_FALSE, value_ptr(camera->GetViewMatrix()));
+		glUniformMatrix4fv(glGetUniformLocation(shader->Program, "Projection"), 1, GL_FALSE, value_ptr(camera->GetProjectionMatrx()));
+		glUniform1i(glGetUniformLocation(shader->Program, "DiffuseColorBuffer"), 0);
+		glUniform1i(glGetUniformLocation(shader->Program, "PositionBuffer"), 1);
+		glUniform1i(glGetUniformLocation(shader->Program, "NormalBuffer"), 2);
+		glUniform1i(glGetUniformLocation(shader->Program, "Environment"), 3);
+		glUniform1i(glGetUniformLocation(shader->Program, "Directional"), directional);
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, sizeof(QuadIndices) / sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
 		glBindVertexArray(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	void OcclusionStage::BindOcclusionBuffer(const GLenum textureUnit) const
+	{
+		glActiveTexture(textureUnit);
+		glBindTexture(GL_TEXTURE_2D, occlusionTexture);
 	}
 }

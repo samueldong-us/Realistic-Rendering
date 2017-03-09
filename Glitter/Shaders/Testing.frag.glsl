@@ -1,6 +1,6 @@
 #version 330 core
 #define Gamma 2.2
-#define Exposure 0.1
+#define Exposure 1.0
 
 in vec2 uv;
 

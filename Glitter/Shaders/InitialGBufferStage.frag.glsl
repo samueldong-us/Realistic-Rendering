@@ -1,4 +1,5 @@
 #version 330 core
+#define TextureSize 1024
 
 in vec3 position;
 in vec2 uv;
@@ -16,9 +17,6 @@ uniform sampler2D texture_normal1;
 uniform sampler2D texture_specular1;
 uniform sampler2D texture_mask1;
 
-uniform int screenWidth;
-uniform int screenHeight;
-
 void main()
 {
     if (texture(texture_mask1, uv).r < 0.5)
@@ -29,8 +27,8 @@ void main()
     specularColor = texture(texture_specular1, uv).rgb;
     positionColor = position;
 
-    float du = texture(texture_normal1, uv + vec2(1.0 / screenWidth, 0.0)).r - texture(texture_normal1, uv - vec2(1.0 / screenWidth, 0.0)).r;
-    float dv = texture(texture_normal1, uv + vec2(0.0, 1.0 / screenHeight)).r - texture(texture_normal1, uv - vec2(0.0, 1.0 / screenHeight)).r;
+    float du = texture(texture_normal1, uv + vec2(1.0 / TextureSize, 0.0)).r - texture(texture_normal1, uv - vec2(1.0 / TextureSize, 0.0)).r;
+    float dv = texture(texture_normal1, uv + vec2(0.0, 1.0 / TextureSize)).r - texture(texture_normal1, uv - vec2(0.0, 1.0 / TextureSize)).r;
     vec3 modifiedTangent = normalize(tangent) + du * normalize(normal);
     vec3 modifiedBitangent = normalize(bitangent) + dv * normalize(normal);
     vec3 potentialNormal = normalize(cross(modifiedTangent, modifiedBitangent));

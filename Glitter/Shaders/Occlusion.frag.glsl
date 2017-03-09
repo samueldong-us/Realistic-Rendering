@@ -1,7 +1,8 @@
 #version 330 core
 #define Pi 3.1415926
-#define KernelSize 64
+#define KernelSize 32
 #define Bias 0.01
+#define OcclusionStrength 2
 
 in vec2 uv;
 
@@ -16,7 +17,6 @@ uniform mat4 Projection;
 uniform sampler2D DiffuseColorBuffer;
 uniform sampler2D PositionBuffer;
 uniform sampler2D NormalBuffer;
-uniform sampler2D DepthBuffer;
 
 uniform samplerCube Environment;
 uniform bool Directional;
@@ -27,10 +27,13 @@ void main()
     vec3 position = texture(PositionBuffer, uv).xyz;
     vec3 normal = texture(NormalBuffer, uv).xyz;
 
-    float solidAngle = 2 * Pi / KernelSize;
+    float solidAngle = 2.0 * Pi / KernelSize;
+    vec3 accumulatedColor;
+    float visible = 0.0;
+    float total = 0.0;
     for (int i = 0; i < KernelSize; i++)
     {
-        vec3 sampleOffset = Radius * Kernel[i];
+        vec3 sampleOffset = mat3(View) * Radius * Kernel[i];
         if (dot(sampleOffset, normal) < 0.0)
         {
             sampleOffset *= -1;
@@ -40,6 +43,7 @@ void main()
         projectedSample /= projectedSample.w;
         vec2 screenPosition = (projectedSample.xy + 1.0) / 2.0;
         float depth = texture(PositionBuffer, screenPosition).z;
+        float cosine = dot(normalize(sampleOffset), normal);
         if (sample.z > depth - Bias || abs(depth - sample.z) > Radius)
         {
             vec3 radiance = vec3(1.0);
@@ -47,8 +51,10 @@ void main()
             {
                 radiance = texture(Environment, inverse(mat3(View)) * sampleOffset).rgb;
             }
-            float cosine = dot(normalize(sampleOffset), normal);
-            occlusionColor += 1.0 / Pi * radiance * cosine * solidAngle;
+            accumulatedColor += radiance * 1.0 / Pi * cosine * solidAngle;
+            visible += cosine;
         }
+        total += cosine;
     }
+    occlusionColor = accumulatedColor * pow(visible / total, OcclusionStrength);
 }

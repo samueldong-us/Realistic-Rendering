@@ -22,6 +22,7 @@ namespace AdvancedRenderer
 		void BindPositionBuffer(const GLenum textureUnit) const;
 		void BindNormalBuffer(const GLenum textureUnit) const;
 		void BindDepthBuffer(const GLenum textureUnit) const;
+		void BindFramebuffer(const GLenum framebuffer) const;
 
 	private:
 		std::unique_ptr<Shader> shader;

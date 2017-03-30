@@ -46,7 +46,7 @@ void main()
         vec3 lightDirection = normalize(viewLightPosition - position);
         vec3 halfwayDirection = normalize(viewDirection + lightDirection);
 
-        vec3 ks = FresnelSchlick(normal, viewDirection, mix(vec3(NonConductor), specularColor, metalness));
+        vec3 ks = FresnelSchlick(halfwayDirection, viewDirection, mix(vec3(NonConductor), specularColor, metalness));
         vec3 kd = vec3(1.0) - ks;
 
         vec3 diffuseTerm = kd * diffuseColor / Pi;

@@ -39,8 +39,10 @@ include_directories(Glitter/Headers/
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c
                           Glitter/Vendor/soil/*.c)
-file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
-file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
+file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp
+                          Glitter/Headers/*.h)
+file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp
+                          Glitter/Sources/*.c)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
                           Glitter/Shaders/*.geom

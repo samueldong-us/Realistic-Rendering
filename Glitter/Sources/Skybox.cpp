@@ -1,6 +1,9 @@
 #include "soil/soil.h"
 
+extern "C"
+{
 #include "rgbe.h"
+}
 
 #include "VertexData.h"
 #include "Skybox.h"
